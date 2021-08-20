@@ -1,0 +1,28 @@
+{
+  "name": "multisig-stx-btc",
+  "version": "0.0.1",
+  "description": "A webscript for generating, signing, decoding multisig STX operations in the STX-over-BTC wire format",
+  "main": "transacter.js",
+  "scripts": {
+    "clean": "rm -rf dist/ && mkdir dist",
+    "build-libs": "browserify -o dist/distribute.js src/dependencies.js",
+    "copy": "cp src/index.html src/bootstrap.min.css src/transacter.js dist/",
+    "build": "npm run clean && npm run build-libs && npm run copy",
+    "clean-distribute": "rm -rf webscript-multisig-stx-btc/ && rm -f webscript-multisig-stx-btc.zip",
+    "distribute": "npm run clean-distribute && npm run build && npm run distribute-finish",
+    "distribute-finish": "cp -r dist/ webscript-multisig-stx-btc/ && zip webscript-multisig-stx-btc.zip -r webscript-multisig-stx-btc/"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": "github:hirosystems/multisig-stx-btc",
+  "dependencies": {
+    "@babel/polyfill": "^7.7.0",
+    "bigi": "^1.4.2",
+    "bitcoinjs-lib": "^4.0.2",
+    "blockstack": "18.1.5",
+    "blockstack-trezor": "^0.9.8",
+    "browserify": "^16.2.2",
+    "buffer": "^6.0.3",
+    "c32check": "0.0.6"
+  }
+}
