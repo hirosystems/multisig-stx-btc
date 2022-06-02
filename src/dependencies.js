@@ -6,3 +6,4 @@ bsk = require('blockstack');
 bskTrezor = require('blockstack-trezor');
 Buff = require('buffer').Buffer;
 BigInteger = require('bigi');
+bip39 = require('bip39');

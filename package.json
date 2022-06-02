@@ -18,6 +18,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.7.0",
     "bigi": "^1.4.2",
+    "bip32": "^3.0.1",
     "bitcoinjs-lib": "^4.0.2",
     "blockstack": "18.1.5",
     "blockstack-trezor": "^0.9.8",

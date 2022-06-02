@@ -98,6 +98,39 @@
 
 <div class="container">
 <div class="panel panel-default">
+<div class="panel panel-heading panel-heading-custom">Software Signing</div>
+<div class="panel-body">
+  <p><strong>
+      Warning: using software signing is dangerous, and should
+      only ever be done on completely trusted hardware, preferably while
+      disconnected from the internet.
+  </strong></p>
+</div>
+<div class="panel-body">
+<form>
+  <div class="form-group">
+    <label for="soft-transact-path">Signer Path:</label>
+    <input type="text" id="soft-transact-path" class="form-control" style="width:400pt;" autocomplete="off" value="m/5757'/0'/0/0/0" />
+  </div>
+  <div class="form-group">
+    <label for="software-seed">Seed phrase:</label>
+    <textarea id="software-seed" class="form-control" autocomplete="off" value="" rows="5" columns="80"></textarea>
+  </div>
+  <div class="form-group">
+    <label for="soft-transact-input">Partial transaction:</label>
+    <textarea id="soft-transact-input" class="form-control" autocomplete="off" value="" rows="5" columns="80"></textarea>
+  </div>
+  <div class="form-group">
+    <button type="button" onClick="softTransact(true)" class="btn btn-primary">Start Sign TX</button>
+    <button type="button" onClick="softTransact(false)" class="btn btn-primary">Finish Sign TX</button>
+  </div>
+</form>
+</div>
+</div>
+</div>
+
+<div class="container">
+<div class="panel panel-default">
 <div class="panel panel-heading panel-heading-custom">Decode/Check Partial Transaction</div>
 <div class="panel-body">
 <form>
