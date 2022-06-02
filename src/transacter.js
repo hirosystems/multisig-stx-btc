@@ -41,6 +41,24 @@ function getPath() {
   return document.getElementById('transact-path').value.trim()
 }
 
+function getSoftPath() {
+  return document.getElementById('soft-transact-path').value.trim()
+}
+
+
+function getSoftWallet() {
+  const seedPhrase = document.getElementById('software-seed').value.trim()
+  return btc.bip32.fromSeed(bip39.mnemonicToSeed(seedPhrase))
+}
+
+function getSoftXPUB() {
+  const path = getSoftPath()
+  const wallet = getSoftWallet()
+  const key = wallet.derivePath(path)
+  console.log(key.publicKey.toString('hex'))
+  displayMessage('Public key', key.publicKey.toString('hex'))
+}
+
 function getXPUB() {
   const path = getPath()
   return TrezorConnect.getPublicKey({ path })
@@ -565,6 +583,70 @@ function checkDecode() {
   } else {
     displayMessage('tx', `Unknown opcode for Stacks v2: ${op_code}`, 'ERROR')
     return;
+  }
+}
+
+function softTransact(buildIncomplete) {
+  try {
+    innerSoftTransact(buildIncomplete)
+  } catch (err) {
+      displayMessage('tx', `Failed to software sign transaction: <br/><br/> ${err}`, 'ERROR')
+      console.log(err)
+  }
+}
+
+function innerSoftTransact(buildIncomplete) {
+  console.log("Software signing")
+
+  const path = getSoftPath()
+  const wallet = getSoftWallet()
+
+  const inputPayload = document.getElementById('soft-transact-input').value.trim()
+
+  const signerNode = wallet.derivePath(path)
+  const signerPair = btc.ECPair.fromPrivateKey(signerNode.privateKey)
+
+  const { tx, redeemScript } = JSON.parse(Buff.from(inputPayload, 'base64'))
+
+  const redeem = btc.payments.p2ms({ output: Buff.from(redeemScript, 'hex') })
+  const expectedPKs = redeem
+        .pubkeys
+        .map(x=> x.toString('hex'))
+
+  const pubkey = signerPair.publicKey.toString('hex')
+
+  console.log('redeemscript')
+  console.log(redeemScript)
+  console.log('tx')
+  console.log(tx)
+  console.log('pubkey')
+  console.log(pubkey)
+  console.log('expected pubkeys')
+  console.log(expectedPKs)
+
+  if (expectedPKs.indexOf(pubkey) < 0) {
+    throw `Public key at signing path is not in the inputs to the transaction.<br/><br/> Expected: ${expectedPKs} <br/><br/> Attempted to sign with pubkey: ${pubkey}`
+  }
+
+  const txB = btc.TransactionBuilder.fromTransaction(
+    btc.Transaction.fromHex(tx))
+
+  for (let i = 0; i < txB.__inputs.length; i++) {
+    console.log('input')
+    console.log(txB.__inputs[i])
+    txB.sign(i, signerPair, redeem.output)
+  }
+
+  const signedTx = buildIncomplete ? txB.buildIncomplete().toHex() : txB.build().toHex()
+  console.log('== SIGNED TX ==')
+  console.log(signedTx)
+  if (buildIncomplete) {
+    const jsonObj = { tx: signedTx, redeemScript }
+    const payload = Buff.from(JSON.stringify(jsonObj))
+          .toString('base64')
+    displayMessage('tx', payload, 'Partially Signed Transaction')
+  } else {
+    displayMessage('tx', signedTx, 'Signed Transaction')
   }
 }
 
