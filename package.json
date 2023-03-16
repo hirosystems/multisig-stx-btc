@@ -1,6 +1,6 @@
 {
   "name": "multisig-stx-btc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A webscript for generating, signing, decoding multisig STX operations in the STX-over-BTC wire format",
   "main": "transacter.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "@babel/polyfill": "^7.7.0",
     "bigi": "^1.4.2",
     "bitcoinjs-lib": "^4.0.2",
-    "blockstack": "18.1.5",
+    "blockstack": "18.1.6",
     "blockstack-trezor": "^0.10.0",
     "browserify": "^16.2.2",
     "buffer": "^6.0.3",

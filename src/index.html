@@ -28,7 +28,7 @@
     <input type="text" id="from-address" class="form-control" style="width:400pt;" autocomplete="off" value="" />
   </div>
   <div class="form-group">
-    <label for="transact-path">From public keys (comma separate):</label>
+    <label for="transact-path">From public keys (comma separated):</label>
     <textarea id="from-pubkeys" class="form-control" autocomplete="off" value="" rows="5" columns="80"></textarea>
   </div>
   <div class="form-group">
@@ -40,17 +40,35 @@
     <input type="text" id="to-address" class="form-control" style="width:400pt;" autocomplete="off" value="" />
   </div>
   <div class="form-group">
-    <label for="transact-input">microSTACKS (10^-6 STACKS) to send or stack (number):</label>
+    <label for="transact-input">microSTACKS (10^-6 STACKS) to send/stack/delegate (number):</label>
     <input type="text" id="stacks-send" class="form-control" style="width:400pt;" autocomplete="off" value="" />
   </div>
-  <div class="form-group">
-    <label for="transact-input">Pox Address (stacking only):</label>
-    <input type="text" id="pox-address" class="form-control" style="width:400pt;" autocomplete="off" value="" />
-  </div>
-  <div class="form-group">
-    <label for="transact-input">Cycles to stack (stacking only):</label>
-    <input type="text" id="stack-cycles" class="form-control" style="width:400pt;" autocomplete="off" value="" />
-  </div>
+  <fieldset class="container">
+    <legend><h5>Stacking TX</h5></legend>
+    <div class="form-group">
+      <label for="transact-input">Pox Address, <em>required</em>:</label>
+      <input type="text" id="pox-address" class="form-control" style="width:400pt;" autocomplete="off" value="" />
+    </div>
+    <div class="form-group">
+      <label for="transact-input">Cycles to stack, <em>required</em>:</label>
+      <input type="text" id="stack-cycles" class="form-control" style="width:400pt;" autocomplete="off" value="" />
+    </div>
+  </fieldset>
+  <fieldset class="container">
+    <legend><h5>Delegate TX</h5></legend>
+    <div class="form-group">
+      <label for="delegate-to">Delegate To (C32 Address), <em>required</em>:</label>
+      <input type="text" id="delegate-to" class="form-control" style="width:400pt;" autocomplete="off" value="" />
+    </div>
+    <div class="form-group">
+      <label for="delegate-pox-address">Pox Address (BTC Reward Address), <em>optional</em>:</label>
+      <input type="text" id="delegate-pox-address" class="form-control" style="width:400pt;" autocomplete="off" value="" />
+    </div>
+    <div class="form-group">
+      <label for="delegate-until-burn-height">Until Burn Height, <em>optional</em>:</label>
+      <input type="text" id="delegate-until-burn-height" class="form-control" style="width:400pt;" autocomplete="off" value="" />
+    </div>
+  </fieldset>
   <div class="form-group">
     <label for="consume-utxo">Pre-Stx TX TXID to consume:</label>
     <input type="text" id="consume-utxo" class="form-control" style="width:400pt;" autocomplete="off" value="" />
@@ -63,6 +81,7 @@
     <button type="button" onClick="generate()" class="btn btn-primary">Generate Pre-STX TX</button>
     <button type="button" onClick="generate_transfer()" class="btn btn-primary">Generate Transfer TX</button>
     <button type="button" onClick="generate_stacking()" class="btn btn-primary">Generate Stacking TX</button>
+    <button type="button" onClick="generate_delegate()" class="btn btn-primary">Generate Delegate TX</button>
   </div>
 </form>
 </div>
@@ -143,4 +162,3 @@
 </div>
 </div>
 </div>
-
