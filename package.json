@@ -20,7 +20,7 @@
     "bigi": "^1.4.2",
     "bitcoinjs-lib": "^4.0.2",
     "blockstack": "18.1.5",
-    "blockstack-trezor": "^0.9.8",
+    "blockstack-trezor": "^0.10.0",
     "browserify": "^16.2.2",
     "buffer": "^6.0.3",
     "c32check": "0.0.6"

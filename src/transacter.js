@@ -1,5 +1,13 @@
 let specificUTXO;
 
+TrezorConnect.init({
+    lazyLoad: true, // this param will prevent iframe injection until TrezorConnect.method will be called
+    manifest: {
+        email: 'aaron@hiro.so',
+        appUrl: 'https://github.com/hirosystems/multisig-stx-btc',
+    },
+});
+
 bsk.config.network.getUTXOs = (address) => {
   return bsk.config.network.getNetworkedUTXOs(address)
     .then(
@@ -472,7 +480,12 @@ function transact(buildIncomplete) {
       }
     })
     .catch(err => {
-      displayMessage('tx', `Failed to sign transaction: <br/><br/> ${err}`, 'ERROR')
+      if (`${err}`.includes("Forbidden key path")) {
+        displayMessage('tx', `Failed to sign transaction: <br/><br/> ${err} <br/><br/>` +
+                       `To sign using the STX coin path (5757), you must set safety checks to "prompt" in Trezor Suite -> Settings -> Device -> Security -> Safety Checks`, 'ERROR')
+      } else {
+        displayMessage('tx', `Failed to sign transaction: <br/><br/> ${err}`, 'ERROR')
+      }
       console.log(err)
     })
 }
