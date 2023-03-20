@@ -20,10 +20,11 @@
     "bigi": "^1.4.2",
     "bip32": "^3.0.1",
     "bitcoinjs-lib": "^4.0.2",
-    "blockstack": "18.1.5",
-    "blockstack-trezor": "^0.10.0",
+    "blockstack": "file:.yalc/blockstack",
+    "blockstack-trezor": "^0.9.8",
     "browserify": "^16.2.2",
     "buffer": "^6.0.3",
-    "c32check": "0.0.6"
+    "c32check": "0.0.6",
+    "patch-package": "^6.5.1"
   }
 }

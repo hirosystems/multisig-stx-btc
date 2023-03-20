@@ -1,0 +1,31 @@
+diff --git a/node_modules/blockstack/dist/blockstack.js b/node_modules/blockstack/dist/blockstack.js
+index 601742b..0144496 100644
+--- a/node_modules/blockstack/dist/blockstack.js
++++ b/node_modules/blockstack/dist/blockstack.js
+@@ -4578,7 +4578,7 @@ function makeV2TokenTransferSkeleton(recipientAddress, tokenAmount, scratchArea)
+ 
+   var tokenValueHexPadded = ('0000000000000000000000000000000000000000' + tokenValueHex).slice(-32);
+ 
+-  opReturnBuffer.write('X2$', 0, 3, 'ascii');
++  opReturnBuffer.write('T2$', 0, 3, 'ascii');
+   opReturnBuffer.write(tokenValueHexPadded, 3, tokenValueHexPadded.length / 2, 'hex');
+   opReturnBuffer.write(scratchArea, 19, scratchArea.length, 'ascii');
+ 
+@@ -4617,7 +4617,7 @@ function makeStackingSkeleton(poxAddress, tokenAmount, cycles) {
+     throw new Error('Cannot stack tokens: cannot fit cycle count ' + cycles.toString() + ' into 1 byte');
+   }
+ 
+-  opReturnBuffer.write('X2x', 0, 3, 'ascii');
++  opReturnBuffer.write('T2x', 0, 3, 'ascii');
+   opReturnBuffer.write(tokenValueHexPadded, 3, tokenValueHexPadded.length / 2, 'hex');
+   opReturnBuffer.write(cyclesValueHex, 19, cyclesValueHex.length / 2, 'hex');
+ 
+@@ -4642,7 +4642,7 @@ function makeV2PreStxOpSkeleton()
+ 
+   var opReturnBuffer = Buffer.alloc(3);
+ 
+-  opReturnBuffer.write('X2p', 0, 3, 'ascii');
++  opReturnBuffer.write('T2p', 0, 3, 'ascii');
+ 
+   var nullOutput = _bitcoinjsLib2.default.payments.embed({ data: [opReturnBuffer] }).output;
+   var tx = makeTXbuilder();

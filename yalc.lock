@@ -1,0 +1,11 @@
+{
+  "version": "v1",
+  "packages": {
+    "blockstack": {
+      "version": "18.1.5",
+      "signature": "8a351ec54e21ee2900fadd5b4d8735e2",
+      "file": true,
+      "replaced": "18.1.5"
+    }
+  }
+}

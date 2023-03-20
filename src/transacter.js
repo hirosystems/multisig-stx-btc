@@ -9,7 +9,15 @@ TrezorConnect.init({
 });
 
 bsk.config.network.getUTXOs = (address) => {
-  return bsk.config.network.getNetworkedUTXOs(address)
+  // return bsk.config.network.getNetworkedUTXOs(address)
+  return fetch(`https://blockstream.info/testnet/api/address/${address}/utxo`)
+    .then(res => res.json())
+    .then(json => json.map((utxo) => ({
+      ...utxo,
+      tx_hash: utxo.txid,
+      tx_output_n: utxo.vout,
+      value: parseInt(utxo.value),
+    })))
     .then(
     (allUTXOs) => {
       if (specificUTXO) {
@@ -116,18 +124,24 @@ function generate() {
 
   return Promise.resolve().then(() => {
     let authorizedPKs = fromPKsHex.slice().sort().map((k) => Buff.from(k, 'hex'))
-    let redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs })
+    let redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs, network: btc.networks.testnet })
     let redeemScript = redeem.output.toString('hex')
 
-    let btcFromAddr = btc.payments.p2sh({ redeem }).address
+    console.log(btc.networks.testnet)
+    
+    let btcFromAddr = btc.payments.p2sh({ redeem, network: btc.networks.testnet }).address
     let c32FromAddr = c32.b58ToC32(btcFromAddr)
+    
+    console.log(`btcFromAddr`, btcFromAddr)
+    console.log(`c32FromAddr`, c32FromAddr)
+    
     if (c32FromAddr !== fromAddr) {
       console.log('Failed to compute correct address from PKs, trying alternate combination');
       authorizedPKs_unsorted = fromPKsHex.map((k) => Buff.from(k, 'hex'))
-      redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs_unsorted })
+      redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs_unsorted, network: btc.networks.testnet })
       redeemScript = redeem.output.toString('hex')
 
-      btcFromAddr = btc.payments.p2sh({ redeem }).address
+      btcFromAddr = btc.payments.p2sh({ redeem, network: btc.networks.testnet }).address
       c32FromAddr = c32.b58ToC32(btcFromAddr)
 
       if (c32FromAddr !== fromAddr) {
@@ -418,18 +432,18 @@ function generate_delegate() {
   return Promise.resolve().then(() => {
     specificUTXO = utxo;
     let authorizedPKs = fromPKsHex.slice().sort().map((k) => Buff.from(k, 'hex'))
-    let redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs })
+    let redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs, network: btc.networks.testnet })
     let redeemScript = redeem.output.toString('hex')
 
-    let btcFromAddr = btc.payments.p2sh({ redeem }).address
+    let btcFromAddr = btc.payments.p2sh({ redeem, network: btc.networks.testnet }).address
     let c32FromAddr = c32.b58ToC32(btcFromAddr)
     if (c32FromAddr !== fromAddr) {
       console.log('Failed to compute correct address from PKs, trying alternate combination');
       authorizedPKs_unsorted = fromPKsHex.map((k) => Buff.from(k, 'hex'))
-      redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs_unsorted })
+      redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs_unsorted, network: btc.networks.testnet })
       redeemScript = redeem.output.toString('hex')
 
-      btcFromAddr = btc.payments.p2sh({ redeem }).address
+      btcFromAddr = btc.payments.p2sh({ redeem, network: btc.networks.testnet }).address
       c32FromAddr = c32.b58ToC32(btcFromAddr)
 
       if (c32FromAddr !== fromAddr) {
