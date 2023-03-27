@@ -397,6 +397,9 @@ function generate_delegate() {
 
   let feeRateFunction = bsk.config.network.getFeeRate;
 
+  // if PoXaddress is specified, then it is included as a non-removable output!
+  const minOutputLength = poxAddress ? 3 : 2;
+
   return Promise.resolve().then(() => {
     specificUTXO = utxo;
     let authorizedPKs = fromPKsHex.slice().sort().map((k) => Buff.from(k, 'hex'))
@@ -445,7 +448,7 @@ function generate_delegate() {
       .then(rawTX => {
         if (useWholeUTXO) {
           let tx = btc.Transaction.fromHex(rawTX);
-          while (tx.outs.length > 2) {
+          while (tx.outs.length > minOutputLength) {
             tx.outs.pop();
           }
           return tx.toHex()
@@ -552,16 +555,44 @@ function checkDecode() {
     displayMessage('tx', message, 'Decoded/Checked Transaction');
   } else if (op_code == '#') {
     const micro_amount = BigInteger.fromHex(script.slice(3, 19).toString('hex'))
+    const until_height = script.slice(24, 25).toString('hex') == "01" ?
+          BigInteger.fromHex(script.slice(25, 33).toString('hex')) :
+          null;
+    const reward_addr_index = script.slice(19, 20).toString('hex') == "01" ?
+          BigInteger.fromHex(script.slice(20, 24).toString('hex')) :
+          null;
+    const reward_addr = reward_addr_index ?
+          btc.address.fromOutputScript(tx.outs[1 + reward_addr_index.intValue()].script) :
+          null;
+
     const message = `
   ================== Delegate Op ========================<br/>
   STX from address: ${fromSTXAddress}<br/>
-  STX to address:   ${toSTXAddress}<br/>
+  Delegate to address:   ${toSTXAddress}<br/>
   microstacks amount: ${micro_amount}<br/>
+  &nbsp;&nbsp; Until height?: ${until_height || "Not specified"} <br/>
+  &nbsp;&nbsp; PoX reward addr?: ${reward_addr || "Not specified"} <br/>
   partially signed: ${partially_signed}<br/>
   BTC consumed: ${total_btc}<br/>
   =======================================================<br/>
 `;
     displayMessage('tx', message, 'Decoded/Checked Transaction');
+  } else if (op_code == 'x') {
+    const micro_amount = BigInteger.fromHex(script.slice(3, 19).toString('hex'))
+    const cycles = BigInteger.fromHex(script.slice(19, 20).toString('hex'))
+
+    const message = `
+  ================== Stack-Stx Op ========================<br/>
+  STX from address: ${fromSTXAddress}<br/>
+  PoX reward addr:   ${toBTCAddress}<br/>
+  microstacks amount: ${micro_amount}<br/>
+  number of cycles: ${cycles}<br/>
+  partially signed: ${partially_signed}<br/>
+  BTC consumed: ${total_btc}<br/>
+  =======================================================<br/>
+`;
+    displayMessage('tx', message, 'Decoded/Checked Transaction');
+
   } else {
     displayMessage('tx', `Unknown opcode for Stacks v2: ${op_code}`, 'ERROR')
     return;
