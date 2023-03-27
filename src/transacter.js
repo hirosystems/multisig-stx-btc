@@ -92,7 +92,7 @@ function generate() {
   const requiredSigners = parseInt(document.getElementById('from-n').value.trim())
 
   if (isNaN(requiredSigners) || requiredSigners <= 0) {
-    displayMessage('tx', 'Invalid input in amount to send -- must be a positive integer.', 'ERROR')
+    displayMessage('tx', 'Invalid input in required signers -- must be a positive integer.', 'ERROR')
     return
   }
 
@@ -362,6 +362,127 @@ function generate_stacking() {
     })
 }
 
+function generate_delegate() {
+  const fromAddr = document.getElementById('from-address').value.trim()
+  const fromPKsHex = document.getElementById('from-pubkeys').value.trim().split(',').map(x => x.trim())
+  const requiredSigners = parseInt(document.getElementById('from-n').value.trim())
+  const utxo = document.getElementById('consume-utxo').value.trim()
+
+  const amount = BigInteger.fromBuffer(document.getElementById('stacks-send').value.trim())
+  const delegateTo = document.getElementById('delegate-to').value.trim()
+  const poxAddress = document.getElementById('delegate-pox-address').value.trim() || null
+  const untilBurnHt = document.getElementById('delegate-until-burn-height').value.trim() || null
+
+  const useWholeUTXO = document.getElementById('use-whole-utxo').checked;
+
+  if (amount.compareTo(BigInteger.ONE) < 0) {
+    displayMessage('tx', 'Invalid input in amount to send -- must be a positive integer.', 'ERROR')
+    return
+  }
+
+  if (!delegateTo) {
+    displayMessage('tx', 'Invalid input in delegate to -- must be a valid address.', 'ERROR')
+    return
+  }
+
+  if (isNaN(requiredSigners) || requiredSigners <= 0) {
+    displayMessage('tx', 'Invalid input in required signers.', 'ERROR')
+    return
+  }
+
+  if (untilBurnHt && new BigInteger(untilBurnHt).compareTo(BigInteger.ONE) < 0) {
+    displayMessage('tx', 'Invalid input in until burn height -- must be a positive integer, if set.', 'ERROR')
+    return
+  }
+
+  let feeRateFunction = bsk.config.network.getFeeRate;
+
+  // if PoXaddress is specified, then it is included as a non-removable output!
+  const minOutputLength = poxAddress ? 3 : 2;
+
+  return Promise.resolve().then(() => {
+    specificUTXO = utxo;
+    let authorizedPKs = fromPKsHex.slice().sort().map((k) => Buff.from(k, 'hex'))
+    let redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs })
+    let redeemScript = redeem.output.toString('hex')
+
+    let btcFromAddr = btc.payments.p2sh({ redeem }).address
+    let c32FromAddr = c32.b58ToC32(btcFromAddr)
+    if (c32FromAddr !== fromAddr) {
+      console.log('Failed to compute correct address from PKs, trying alternate combination');
+      authorizedPKs_unsorted = fromPKsHex.map((k) => Buff.from(k, 'hex'))
+      redeem = btc.payments.p2ms({ m: requiredSigners, pubkeys: authorizedPKs_unsorted })
+      redeemScript = redeem.output.toString('hex')
+
+      btcFromAddr = btc.payments.p2sh({ redeem }).address
+      c32FromAddr = c32.b58ToC32(btcFromAddr)
+
+      if (c32FromAddr !== fromAddr) {
+        throw new Error('Computed address (from PKs and required signer) does not match inputted address')
+      }
+    }
+
+    const dummySigner = new bskTrezor.NullSigner(btcFromAddr)
+
+    if (useWholeUTXO) {
+      bsk.config.network.getFeeRate = function() {
+        return Promise.resolve(1)
+      };
+    }
+
+    const delegateToB58 = c32.c32ToB58(delegateTo)
+    const untilBurnHtOpt = untilBurnHt ? new BigInteger(untilBurnHt) : null
+
+    return bsk.transactions.makeDelegate(amount,
+                                         delegateToB58,
+                                         poxAddress,
+                                         untilBurnHtOpt,
+                                         dummySigner,
+                                         undefined,
+                                         true)
+      .then(rawTX => {
+        console.log('=== Partially Signed Token Transfer ===')
+        console.log(rawTX)
+        return rawTX
+      })
+      .then(rawTX => {
+        if (useWholeUTXO) {
+          let tx = btc.Transaction.fromHex(rawTX);
+          while (tx.outs.length > minOutputLength) {
+            tx.outs.pop();
+          }
+          return tx.toHex()
+        } else {
+          return rawTX
+        }
+      })
+      .then(tx => ({ tx, redeemScript }))
+      .catch(err => {
+        if (err.name === 'NotEnoughFundsError') {
+          err.btcAddr = btcFromAddr
+        }
+        throw err
+      })
+  })
+    .then(jsonOutput => Buff.from(JSON.stringify(jsonOutput))
+          .toString('base64'))
+    .then(payload => {
+      specificUTXO = undefined;
+      bsk.config.network.getFeeRate = feeRateFunction;
+      displayMessage('tx', `Payload: <br/> <br/> ${payload}`, 'Unsigned Transaction')
+    })
+    .catch(err => {
+      specificUTXO = undefined;
+      bsk.config.network.getFeeRate = feeRateFunction;
+      if (err.name === 'NotEnoughFundsError') {
+        displayMessage('tx', `The transaction generator doesn't think the PreStxOp has enough funds to pay the transaction fees. Try to generate using the "use whole UTXO" option.`, 'ERROR')
+      } else {
+        displayMessage('tx', `Failed to generate transaction: <br/><br/> ${err}`, 'ERROR')
+      }
+      console.log(err)
+    })
+}
+
 function getDevice() {
   return document.getElementById('transact-device').value.trim()
 }
@@ -432,6 +553,46 @@ function checkDecode() {
   =======================================================<br/>
 `;
     displayMessage('tx', message, 'Decoded/Checked Transaction');
+  } else if (op_code == '#') {
+    const micro_amount = BigInteger.fromHex(script.slice(3, 19).toString('hex'))
+    const until_height = script.slice(24, 25).toString('hex') == "01" ?
+          BigInteger.fromHex(script.slice(25, 33).toString('hex')) :
+          null;
+    const reward_addr_index = script.slice(19, 20).toString('hex') == "01" ?
+          BigInteger.fromHex(script.slice(20, 24).toString('hex')) :
+          null;
+    const reward_addr = reward_addr_index ?
+          btc.address.fromOutputScript(tx.outs[1 + reward_addr_index.intValue()].script) :
+          null;
+
+    const message = `
+  ================== Delegate Op ========================<br/>
+  STX from address: ${fromSTXAddress}<br/>
+  Delegate to address:   ${toSTXAddress}<br/>
+  microstacks amount: ${micro_amount}<br/>
+  &nbsp;&nbsp; Until height?: ${until_height || "Not specified"} <br/>
+  &nbsp;&nbsp; PoX reward addr?: ${reward_addr || "Not specified"} <br/>
+  partially signed: ${partially_signed}<br/>
+  BTC consumed: ${total_btc}<br/>
+  =======================================================<br/>
+`;
+    displayMessage('tx', message, 'Decoded/Checked Transaction');
+  } else if (op_code == 'x') {
+    const micro_amount = BigInteger.fromHex(script.slice(3, 19).toString('hex'))
+    const cycles = BigInteger.fromHex(script.slice(19, 20).toString('hex'))
+
+    const message = `
+  ================== Stack-Stx Op ========================<br/>
+  STX from address: ${fromSTXAddress}<br/>
+  PoX reward addr:   ${toBTCAddress}<br/>
+  microstacks amount: ${micro_amount}<br/>
+  number of cycles: ${cycles}<br/>
+  partially signed: ${partially_signed}<br/>
+  BTC consumed: ${total_btc}<br/>
+  =======================================================<br/>
+`;
+    displayMessage('tx', message, 'Decoded/Checked Transaction');
+
   } else {
     displayMessage('tx', `Unknown opcode for Stacks v2: ${op_code}`, 'ERROR')
     return;
