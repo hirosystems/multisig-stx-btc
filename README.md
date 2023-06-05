@@ -109,7 +109,13 @@ Broadcast that transaction from any valid Bitcoin transaction broadcaster
 
 ## Hosting the script locally
 
+> **Warning**
+> An update to the Trezor Connect library may [break the script](https://github.com/hirosystems/multisig-stx-btc/issues/3) when opening the `index.html` file directly in the browser.
+> Below are some alternative ways to host the script locally, which currently work.
+
 ### With Docker and `nginx`
+
+> Requires [Docker](https://www.docker.com/products/docker-desktop/) to be installed.
 
 From the root of this repository _(the folder which contains the `dist` folder)_, run:
 
@@ -120,3 +126,59 @@ docker run --rm --name nginx-multisig-stx-btc -p 8080:80 -v $(PWD)/dist:/usr/sha
 This will serve the `dist` directory locally on port 8080 using `nginx`.
 You can then access the script at `http://localhost:8080`.
 Hit `ctrl-c` to stop the container again.
+
+### With Python
+
+> Requires [Python 3.7+](https://www.python.org/downloads/) to be installed.
+
+From the root of this repository _(the folder which contains the `dist` folder)_, run:
+
+```bash
+python3 -m http.server 8080 --directory dist
+```
+
+This will serve the `dist` directory locally on port 8080 using Python's built-in HTTP server.
+You can then access the script at `http://localhost:8080`.
+Hit `ctrl-c` to stop the server again.
+
+### With Node.js / NPM
+
+> Requires [Node.js](https://nodejs.org/en/download/) to be installed.
+
+From the root of this repository _(the folder which contains the `dist` folder)_, run:
+
+```bash
+npx serve dist
+```
+
+This will serve the `dist` directory locally on port 3000 using the [serve](https://www.npmjs.com/package/serve) package from Vercel.
+You can then access the script at `http://localhost:3000`.
+Hit `ctrl-c` to stop the server again.
+
+### With macOS default Apache
+
+> Works only on macOS, using pre-installed software and no additional installs.
+
+From the root of this repository _(the folder which contains the `dist` folder)_, go through the following steps:
+
+1. Copy the `dist` folder to the default Apache directory:
+
+```bash
+sudo cp -r dist/ /Library/WebServer/Documents/multisig-stx-btc
+```
+
+2. Enable Apache _(hosts files at `/Library/WebServer/Documents` on port 80)_:
+
+```bash
+sudo apachectl start
+```
+
+3. Access the script at `http://localhost/multisig-stx-btc`.
+
+4. When you're done, disable Apache again:
+
+```bash
+sudo apachectl stop
+```
+
+> Optionally, delete the `dist` content from the Apache directory again using `sudo rm -rf /Library/WebServer/Documents/multisig-stx-btc`.
