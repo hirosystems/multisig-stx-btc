@@ -107,17 +107,39 @@ signs the transaction, it will output a raw Bitcoin transaction as a hex string.
 Broadcast that transaction from any valid Bitcoin transaction broadcaster
 (e.g., https:://www.blockchain.com/btc/pushtx).
 
-## Hosting the script locally
+---
 
-> **Warning**
-> An update to the Trezor Connect library may [break the script](https://github.com/hirosystems/multisig-stx-btc/issues/3) when opening the `index.html` file directly in the browser.
-> Below are some alternative ways to host the script locally, which currently work.
+## Development
 
-### With Docker and `nginx`
+**tl;dr**: run the following command to build and serve the script locally on `http://localhost:8080`
+
+```bash
+docker build -t multisig-stx-btc . && docker run --rm -p 8080:80 multisig-stx-btc
+```
+
+### Building
+
+Typically the script is built using Node.js and NPM.
+The following commands will build the script and bundle the results in a `dist` folder:
+
+```bash
+npm install
+npm run build
+```
+
+Additionally, a `Dockerfile` is provided, which can be used to build and serve the script locally.
+
+### Serving
+
+> **Note**
+> An update to the Trezor Connect library may [break the script](https://github.com/hirosystems/multisig-stx-btc/issues/3) if the `index.html` file is directly opened in the browser.
+> Below are some methods for correctly serving the script locally.
+
+#### With Docker and `nginx`
 
 > Requires [Docker](https://www.docker.com/products/docker-desktop/) to be installed.
 
-From the root of this repository _(the folder which contains the `dist` folder)_, run:
+From the root of this repository _(with the build output in a folder named `dist`)_, run:
 
 ```bash
 docker run --rm --name nginx-multisig-stx-btc -p 8080:80 -v $(PWD)/dist:/usr/share/nginx/html nginx
@@ -127,11 +149,11 @@ This will serve the `dist` directory locally on port 8080 using `nginx`.
 You can then access the script at `http://localhost:8080`.
 Hit `ctrl-c` to stop the container again.
 
-### With Python
+#### With Python
 
 > Requires [Python 3.7+](https://www.python.org/downloads/) to be installed.
 
-From the root of this repository _(the folder which contains the `dist` folder)_, run:
+From the root of this repository _(with the build output in a folder named `dist`)_, run:
 
 ```bash
 python3 -m http.server 8080 --directory dist
@@ -141,11 +163,11 @@ This will serve the `dist` directory locally on port 8080 using Python's built-i
 You can then access the script at `http://localhost:8080`.
 Hit `ctrl-c` to stop the server again.
 
-### With Node.js / NPM
+#### With Node.js / NPM
 
 > Requires [Node.js](https://nodejs.org/en/download/) to be installed.
 
-From the root of this repository _(the folder which contains the `dist` folder)_, run:
+From the root of this repository _(with the build output in a folder named `dist`)_, run:
 
 ```bash
 npx serve dist
@@ -155,13 +177,13 @@ This will serve the `dist` directory locally on port 3000 using the [serve](http
 You can then access the script at `http://localhost:3000`.
 Hit `ctrl-c` to stop the server again.
 
-### With macOS default Apache
+#### With macOS default Apache
 
 > Works only on macOS, using pre-installed software and no additional installs.
 
-From the root of this repository _(the folder which contains the `dist` folder)_, go through the following steps:
+From the root of this repository _(with the build output in a folder named `dist`)_, go through the following steps:
 
-1. Copy the `dist` folder to the default Apache directory:
+1. Copy the build output to the default Apache directory:
 
 ```bash
 sudo cp -r dist/ /Library/WebServer/Documents/multisig-stx-btc
