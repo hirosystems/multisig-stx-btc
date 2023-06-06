@@ -131,6 +131,9 @@ Additionally, a `Dockerfile` is provided, which can be used to build and serve t
 
 ### Serving
 
+The script can be served locally (accessed via localhost) or behind https on a web server.
+Other methods of hosting (e.g. on a NAS in a local network) may cause problems with the Trezor Connect library.
+
 > **Note**
 > An update to the Trezor Connect library may [break the script](https://github.com/hirosystems/multisig-stx-btc/issues/3) if the `index.html` file is directly opened in the browser.
 > Below are some methods for correctly serving the script locally.
@@ -203,4 +206,4 @@ sudo apachectl start
 sudo apachectl stop
 ```
 
-> Optionally, delete the `dist` content from the Apache directory again using `sudo rm -rf /Library/WebServer/Documents/multisig-stx-btc`.
+> Optionally, trash the `dist` content from the Apache directory again using `sudo mv /Library/WebServer/Documents/multisig-stx-btc ~/.Trash/multisig-stx-btc`.
