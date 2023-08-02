@@ -28,7 +28,7 @@ bsk.config.network.getUTXOs = (address) => {
 }
 
 bsk.config.network.getFeeRate = function() {
-  return fetch('https://bitcoinfees.earn.com/api/v1/fees/recommended')
+  return fetch('https://mempool.space/api/v1/fees/recommended')
       .then(resp => resp.json())
       .then(rates => Math.floor(2.3 * rates.fastestFee))
 }
